@@ -31,29 +31,37 @@ targets:
    default:
       name: "Building it"
       steps:
-         composer_install:
+         - "composer:install":
             prefer: dist
-         bower_install: ~
+         - "bower:install": ~
    cs:
       requires:
-         - build
+         - default
       steps:
-         phpcs: ~
+         - "phpcs:check": ~
 
    test:
       requires:
          - build
          - cs
       steps:
-         phpunit: ~
+         - "phpunit:test": ~
     
    deploy:
       requires:
          - build
+      loop:
+         -
+            host: app1.example.com
+            port: 22
+         -
+            host: app2.example.com
+            port: 2222
+
       steps:
-         deploy_ssh:
-            host: "{{ deploy.host }}"
+         - "deploy:ssh":
             sshkey: "{{ deploy.sshkey }}"
+            basepath: "/code/myapp/"
 ```
 
 At the top level, you define the "targets". When you run droid, you always pass a target name. It uses target name "default" if none is specified.
@@ -80,8 +88,10 @@ vendor/bin/droid run test
 ```sh
 vendor/bin/droid list
 ```
-
 This lists the available commands you can use in your `droid.yml` file.
+
+## Registering your own custom commands
+
 To register custom commands, you can add the following section to your droid.yml:
 
 ```yml
